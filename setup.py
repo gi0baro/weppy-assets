@@ -36,7 +36,7 @@ setup(
         'libsass'
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha'
+        'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
