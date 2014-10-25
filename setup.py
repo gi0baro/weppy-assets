@@ -12,12 +12,12 @@ from setuptools import setup
 setup(
     name='weppy-Assets',
     version='0.1',
-    url='',
+    url='https://github.com/gi0baro/weppy-assets',
     license='BSD',
     author='Giovanni Barillari',
     author_email='gi0baro@d4net.org',
-    description='Asset management for weppy',
-    #long_description=__doc__,
+    description='Assets management for weppy',
+    long_description=__doc__,
     packages=[
         'weppy_assets',
         'weppy_assets.webassets',

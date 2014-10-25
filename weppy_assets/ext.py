@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+    weppy_assets.ext
+    ----------------
+
+    Provides assets management for weppy
+
+    :copyright: (c) 2014 by Giovanni Barillari
+    :license: BSD, see LICENSE for more details.
+"""
+
 import os
 from .webassets import Environment, Bundle
 from weppy.extensions import Extension, TemplateExtension, TemplateLexer
