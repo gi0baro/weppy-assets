@@ -113,30 +113,32 @@ class CSSAsset(Asset):
 
 class AssetsLexer(TemplateLexer):
     def process(self, value, top, stack):
-        urls = self.ext.env.assets[value].urls()
-        for url in urls:
-            file_name = url.split("?")[0]
-            file_ext = file_name.rsplit(".", 1)[-1]
-            value = '_weppy_assets_gen_("%(url)s", "%(fext)s")' % \
-                dict(url=url, fext=file_ext)
-            node = self.parser.create_node(value, pre_extend=False,
-                                           writer_escape=False)
-            top.append(node)
+        s = '_weppy_assets_gen_("%s")' % value
+        node = self.parser.create_node(s, pre_extend=False,
+                                       writer_escape=False)
+        top.append(node)
 
 
 class AssetsTemplate(TemplateExtension):
     namespace = 'Assets'
     lexers = {'assets': AssetsLexer}
 
-    @staticmethod
-    def _gen_url_str(url, file_ext):
-        if file_ext == 'js':
-            static = '<script type="text/javascript" src="'+url+'"></script>'
-        elif file_ext == "css":
-            static = '<link rel="stylesheet" href="'+url+'" type="text/css">'
-        else:
-            static = ''
-        return static
+    def _gen_url_str(self, asset):
+        urls = self.env.assets[asset].urls()
+        rv = ''
+        for url in urls:
+            file_name = url.split("?")[0]
+            file_ext = file_name.rsplit(".", 1)[-1]
+            if file_ext == 'js':
+                static = '<script type="text/javascript" src="' + url + \
+                    '"></script>'
+            elif file_ext == "css":
+                static = '<link rel="stylesheet" href="' + url + \
+                    '" type="text/css">'
+            else:
+                continue
+            rv += static
+        return rv
 
     def inject(self, context):
-        context['_weppy_assets_gen_'] = AssetsTemplate._gen_url_str
+        context['_weppy_assets_gen_'] = self._gen_url_str
