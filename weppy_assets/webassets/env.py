@@ -203,6 +203,10 @@ class Resolver(object):
             if needle.startswith(candidate):
                 # Found it!
                 rel_path = needle[len(candidate)+1:]
+                # If there are any subdirs in rel_path, ensure
+                # they use HTML-style path separators, in case
+                # the local OS (Windows!) has a different scheme
+                rel_path = rel_path.replace(os.sep, "/")
                 return url_prefix_join(url, rel_path)
         raise ValueError('Cannot determine url for %s' % filepath)
 
@@ -520,8 +524,6 @@ class ConfigurationContext(object):
           No manifest is used.
 
       Any custom manifest implementation.
-
-    The default value is ``None``.
     """)
 
     def _set_versions(self, versions):

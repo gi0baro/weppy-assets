@@ -16,7 +16,7 @@ class Jinja2(Filter):
     .. code-block:: python
 
         Bundle('input.css', filters=Jinja2(context={'foo': 'bar'}))
-
+    
     Additionally to enable template loading mechanics from your project you can provide
     `JINJA2_ENV` or `jinja2_env` arg to make use of already created environment.
     """

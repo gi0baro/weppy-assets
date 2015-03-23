@@ -145,7 +145,7 @@ class Bundle(object):
     def _get_debug(self):
         return self.config.get('debug', None)
     def _set_debug(self, value):
-        self.config['debug'] = True
+        self.config['debug'] = value
     debug = property(_get_debug, _set_debug)
 
     def _get_filters(self):
@@ -574,7 +574,7 @@ class Bundle(object):
         called from the command line, there is no need to lock.
         """
         extra_filters = extra_filters or []
-
+        
         if not self.output:
             raise BuildError('No output target found for %s' % self)
 

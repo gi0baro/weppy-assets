@@ -25,7 +25,7 @@ class Stylus(ExternalTool):
 
     STYLUS_EXTRA_ARGS
         A Python list of any additional command-line arguments.
-
+        
     STYLUS_EXTRA_PATHS
         A Python list of any additional import paths.
     """
