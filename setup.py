@@ -11,7 +11,7 @@ from setuptools import setup
 
 setup(
     name='weppy-Assets',
-    version='0.1',
+    version='0.2',
     url='https://github.com/gi0baro/weppy-assets',
     license='BSD',
     author='Giovanni Barillari',
@@ -29,14 +29,14 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'weppy',
+        'weppy>=0.3',
         'CoffeeScript',
         'jsmin',
         'cssmin',
         'libsass'
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
