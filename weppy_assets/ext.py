@@ -67,7 +67,7 @@ class JSAsset(Asset):
             if isinstance(el, basestring):
                 if el.split(".")[-1] == "coffee":
                     coffees.append(el)
-        if coffees and not 'coffee' in options['filters']:
+        if coffees and 'coffee' not in options['filters']:
             if coffees != contents:
                 nocoffee = [c for c in contents if c not in coffees]
                 copt = {'filters': ['coffee']}
@@ -112,11 +112,11 @@ class CSSAsset(Asset):
 
 
 class AssetsLexer(TemplateLexer):
-    def process(self, value, top, stack):
+    def process(self, value):
         s = '_weppy_assets_gen_("%s")' % value
         node = self.parser.create_node(s, pre_extend=False,
                                        writer_escape=False)
-        top.append(node)
+        self.top.append(node)
 
 
 class AssetsTemplate(TemplateExtension):
