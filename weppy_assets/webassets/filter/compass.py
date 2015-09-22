@@ -31,9 +31,10 @@ from os import path
 import tempfile
 import shutil
 import subprocess
-from .. import six
+from io import open
 
 from ..exceptions import FilterError
+from .. import six
 from . import Filter, option
 
 
@@ -48,21 +49,18 @@ class CompassConfig(dict):
             """ Determine the correct string rep for the config file """
             if isinstance(val, bool):
                 # True -> true and False -> false
-                return str(val).lower()
+                return six.text_type(val).lower()
             elif isinstance(val, six.string_types) and val.startswith(':'):
                 # ruby symbols, like :nested, used for "output_style"
-                return str(val)
+                return six.text_type(val)
             elif isinstance(val, dict):
                 # ruby hashes, for "sass_options" for example
-                return '{%s}' % ', '.join("'%s' => '%s'" % i for i in val.items())
+                return u'{%s}' % ', '.join("'%s' => '%s'" % i for i in val.items())
             elif isinstance(val, tuple):
                 val = list(val)
-            elif isinstance(val, six.text_type) and not six.PY3:
-                # remove unicode indicator in python2 unicode string
-                return repr(val.encode('utf-8'))
             # works fine with strings and lists
             return repr(val)
-        return '\n'.join(['%s = %s' % (k, string_rep(v)) for k, v in self.items()])
+        return u'\n'.join(['%s = %s' % (k, string_rep(v)) for k, v in self.items()])
 
 
 class Compass(Filter):
@@ -91,7 +89,7 @@ class Compass(Filter):
 
     COMPASS_CONFIG
         An optional dictionary of Compass `configuration options
-        <http://compass-style.org/help/tutorials/configuration-reference/>`_.
+        <http://compass-style.org/help/documentation/configuration-reference/>`_.
         The values are emitted as strings, and paths are relative to the
         Environment's ``directory`` by default; include a ``project_path``
         entry to override this.
@@ -233,7 +231,7 @@ class Compass(Filter):
 
             guessed_outputfilename = path.splitext(path.basename(source_path))[0]
             guessed_outputfilepath = path.join(tempout, guessed_outputfilename)
-            output_file = open("%s.css" % guessed_outputfilepath)
+            output_file = open("%s.css" % guessed_outputfilepath, encoding='utf-8')
             if config.get('sourcemap'):
                 sourcemap_file = open("%s.css.map" % guessed_outputfilepath)
                 sourcemap_output_filepath = path.join(
@@ -245,7 +243,8 @@ class Compass(Filter):
                 sourcemap_output_file = open(sourcemap_output_filepath, 'w')
                 sourcemap_output_file.write(sourcemap_file.read())
             try:
-                out.write(output_file.read())
+                contents = output_file.read()
+                out.write(contents)
             finally:
                 output_file.close()
         finally:

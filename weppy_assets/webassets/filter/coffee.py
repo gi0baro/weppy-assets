@@ -1,5 +1,6 @@
 from __future__ import print_function
-import os, subprocess
+import os
+import subprocess
 import coffeescript
 
 from . import Filter
@@ -50,18 +51,15 @@ class CoffeeScript(Filter):
                 stderr=subprocess.PIPE,
                 shell=(os.name == 'nt'))
         except OSError:
-            #if e.errno == 2:
-            #    raise Exception("coffeescript not installed or in system path for webassets")
-            #raise
             # if we don't have coffescript bin installed, use the js compiler
             rv = coffeescript.compile(_in.read())
             out.write(rv)
             return
         stdout, stderr = proc.communicate(_in.read().encode('utf-8'))
         if proc.returncode != 0:
-            raise FilterError(('coffeescript: subprocess had error: stderr=%s, '+
-                               'stdout=%s, returncode=%s') % (
-                stderr, stdout, proc.returncode))
+            raise FilterError(
+                ('coffeescript: subprocess had error: stderr=%s, stdout=%s, ' +
+                 'returncode=%s') % (stderr, stdout, proc.returncode))
         elif stderr:
             print("coffeescript filter has warnings:", stderr)
         out.write(stdout.decode('utf-8'))
