@@ -5,12 +5,13 @@
 
     Provides assets management for weppy
 
-    :copyright: (c) 2014 by Giovanni Barillari
+    :copyright: (c) 2015 by Giovanni Barillari
     :license: BSD, see LICENSE for more details.
 """
 
 import os
 from .webassets import Environment, Bundle
+from weppy._compat import basestring
 from weppy.extensions import Extension, TemplateExtension, TemplateLexer
 
 
@@ -49,33 +50,66 @@ class Assets(Extension):
 
 
 class Asset(Bundle):
-    def __init__(self, contents, **options):
-        if not isinstance(contents, (list, tuple)):
-            contents = [contents]
+    def __init__(self, *contents, **options):
+        if len(contents) == 1 and isinstance(contents[0], (list, tuple)):
+            contents = contents[0]
         options['filters'] = options.get('filters') or []
+        contents, options = self._initialize_(*contents, **options)
         super(Asset, self).__init__(*contents, **options)
+
+    def _initialize_(self, *contents, **options):
+        return contents, options
+
+    def _auto_filter_(self, contents, options, exts, fname=None):
+        fname = fname or exts[0]
+        if fname not in options['filters']:
+            counts = 0
+            for el in contents:
+                if isinstance(el, basestring):
+                    if el.split(".")[-1] in exts:
+                        counts += 1
+            if counts:
+                if counts != len(contents):
+                    last_ext = False
+                    need_filter = []
+                    grouped_contents = []
+                    for c in contents:
+                        if isinstance(c, basestring):
+                            c_ext = c.split(".")[-1]
+                        else:
+                            c_ext = None
+                        if c_ext != last_ext:
+                            grouped_contents.append([])
+                            if c_ext == fname:
+                                need_filter.append(True)
+                            else:
+                                need_filter.append(False)
+                            last_ext = c_ext
+                        grouped_contents[-1].append(c)
+                    copt = {'filters': [fname]}
+                    new_contents = []
+                    for i in range(0, len(grouped_contents)):
+                        if not isinstance(grouped_contents[i][0], basestring):
+                            for el in grouped_contents[i]:
+                                new_contents.append(el)
+                        else:
+                            if need_filter[i] == True:
+                                new_contents.append(
+                                    self.__class__(
+                                        *grouped_contents[i], **copt))
+                            else:
+                                new_contents.append(
+                                    self.__class__(*grouped_contents[i]))
+                    contents = new_contents
+                else:
+                    options['filters'].append(fname)
+        return contents, options
 
 
 class JSAsset(Asset):
-    def __init__(self, contents, **options):
-        if not isinstance(contents, (list, tuple)):
-            contents = [contents]
-        options['filters'] = options.get('filters') or []
-        # auto-filtering coffee assets
-        coffees = []
-        for el in contents:
-            if isinstance(el, basestring):
-                if el.split(".")[-1] == "coffee":
-                    coffees.append(el)
-        if coffees and 'coffee' not in options['filters']:
-            if coffees != contents:
-                nocoffee = [c for c in contents if c not in coffees]
-                copt = {'filters': ['coffee']}
-                contents = [JSAsset(coffees, **copt),
-                            JSAsset(nocoffee)]
-            else:
-                options['filters'].append('coffee')
-        super(JSAsset, self).__init__(contents, **options)
+    def _initialize_(self, *contents, **options):
+        contets, options = self._auto_filter_(contents, options, ['coffee'])
+        return contents, options
 
     def minify(self):
         self.filters.append('jsmin')
@@ -84,26 +118,10 @@ class JSAsset(Asset):
 
 
 class CSSAsset(Asset):
-    def __init__(self, contents, **options):
-        if not isinstance(contents, (list, tuple)):
-            contents = [contents]
-        options['filters'] = options.get('filters') or []
-        # auto-filtering sass assets
-        _ext = ['sass', 'scss']
-        sass = []
-        for el in contents:
-            if isinstance(el, basestring):
-                if el.split(".")[-1] in _ext:
-                    sass.append(el)
-        if sass and 'libsass' not in options['filters']:
-            if sass != contents:
-                nosass = [c for c in contents if c not in sass]
-                copt = {'filters': ['libsass']}
-                contents = [CSSAsset(sass, **copt),
-                            CSSAsset(nosass)]
-            else:
-                options['filters'].append('libsass')
-        super(CSSAsset, self).__init__(contents, **options)
+    def _initialize_(self, *contents, **options):
+        contents, options = self._auto_filter_(
+            contents, options, ['sass', 'scss'], 'libsass')
+        return contents, options
 
     def minify(self):
         self.filters.append('cssmin')
