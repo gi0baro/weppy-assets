@@ -108,7 +108,7 @@ class Asset(Bundle):
 
 class JSAsset(Asset):
     def _initialize_(self, *contents, **options):
-        contets, options = self._auto_filter_(contents, options, ['coffee'])
+        contents, options = self._auto_filter_(contents, options, ['coffee'])
         return contents, options
 
     def minify(self):
