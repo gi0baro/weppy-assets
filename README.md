@@ -18,4 +18,8 @@ app.use_extension(Assets)
 
 ## Documentation
 
-The documentation will be soon available.
+The complete documentation is available on the [weppy extensions registry](http://weppy.org/extensions/assets).
+
+## License
+
+weppy-Assets is released under BSD license. Check the LICENSE file for more details.
