@@ -7,15 +7,18 @@ This can be used as an alternative to an imperative setup.
 import os, sys
 from os import path
 import glob, fnmatch
+import inspect
 import types
+from . import six
 try:
     import yaml
 except ImportError:
     pass
 
-from . import six
 from . import Environment
 from .bundle import Bundle
+from .exceptions import EnvironmentError
+from .filter import register_filter
 from .importlib import import_module
 
 
@@ -102,6 +105,12 @@ class YAMLLoader(object):
         file = self.file_or_filename
         return file, getattr(file, 'name', False)
 
+    @classmethod
+    def _get_import_resolver(cls):
+        """ method that can be overridden in tests """
+        from zope.dottedname.resolve import resolve as resolve_dotted
+        return resolve_dotted
+
     def load_bundles(self, environment=None):
         """Load a list of :class:`Bundle` instances defined in the YAML file.
 
@@ -165,6 +174,8 @@ class YAMLLoader(object):
             url: /media
             debug: True
             updater: timestamp
+            filters:
+                - my_custom_package.my_filter
             config:
                 compass_bin: /opt/compass
                 another_custom_config_value: foo
@@ -193,6 +204,7 @@ class YAMLLoader(object):
             # Load environment settings
             for setting in ('debug', 'cache', 'versions', 'url_expire',
                             'auto_build', 'url', 'directory', 'manifest', 'load_path',
+                            'cache_file_mode',
                             # TODO: The deprecated values; remove at some point
                             'expire', 'updater'):
                 if setting in obj:
@@ -204,6 +216,26 @@ class YAMLLoader(object):
                 env.directory = path.normpath(
                     path.join(path.dirname(filename),
                               env.config['directory']))
+
+            # Treat the 'filters' option special, it should resolve the
+            # entries as classes and register them to the environment
+            if 'filters' in obj:
+                try:
+                    resolve_dotted = self._get_import_resolver()
+                except ImportError:
+                    raise EnvironmentError(
+                        "In order to use custom filters in the YAMLLoader "
+                        "you must install the zope.dottedname package")
+                for filter_class in obj['filters']:
+                    try:
+                        cls = resolve_dotted(filter_class)
+                    except ImportError:
+                        raise LoaderError("Unable to resolve class %s" % filter_class)
+                    if inspect.isclass(cls):
+                        register_filter(cls)
+                    else:
+                        raise LoaderError("Custom filters must be classes "
+                            "not modules or functions")
 
             # Load custom config options
             if 'config' in obj:
