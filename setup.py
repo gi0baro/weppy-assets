@@ -11,7 +11,7 @@ from setuptools import setup
 
 setup(
     name='weppy-Assets',
-    version='0.4-dev',
+    version='0.4',
     url='https://github.com/gi0baro/weppy-assets',
     license='BSD',
     author='Giovanni Barillari',
