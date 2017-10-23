@@ -5,7 +5,7 @@
 
     Provides assets management for weppy
 
-    :copyright: (c) 2014-2016 by Giovanni Barillari
+    :copyright: (c) 2014-2017 by Giovanni Barillari
     :license: BSD, see LICENSE for more details.
 """
 
@@ -20,18 +20,13 @@ class Assets(Extension):
         out_folder='gen'
     )
 
-    def _load_config(self):
-        self.config.out_folder = self.config.get(
-            'out_folder', self.default_config['out_folder'])
-
     def on_load(self):
-        self._load_config()
-        assets_path = os.path.join(self.app.root_path, "assets")
+        assets_path = os.path.join(self.app.root_path, 'assets')
         if not os.path.exists(assets_path):
             os.mkdir(assets_path)
         out_path = os.path.join(self.app.static_path, self.config.out_folder)
-        out_url = '/static'+((self.config.out_folder and
-                             '/'+self.config.out_folder) or '')
+        out_url = '/static' + (
+            (self.config.out_folder and '/' + self.config.out_folder) or '')
         self._assets = Environment(out_path, out_url, load_path=[assets_path])
         self.app.add_template_extension(AssetsTemplate)
         self.env.assets = self._assets
@@ -130,33 +125,35 @@ class CSSAsset(Asset):
 
 
 class AssetsLexer(TemplateLexer):
-    def process(self, value):
-        s = '_weppy_assets_gen_("%s")' % value
-        node = self.parser.create_node(s, pre_extend=False,
-                                       writer_escape=False)
-        self.top.append(node)
+    def process(self, ctx, value):
+        ctx.python_node(
+            'for _asset_el_ in _weppy_assets_gen_("%s"):' % value)
+        ctx.variable('_asset_el_', escape=False)
+        ctx.python_node('pass')
 
 
 class AssetsTemplate(TemplateExtension):
     namespace = 'Assets'
     lexers = {'assets': AssetsLexer}
 
-    def _gen_url_str(self, asset):
+    def _get_static(self, asset):
+        rv = []
         urls = self.env.assets[asset].urls()
-        rv = ''
         for url in urls:
-            file_name = url.split("?")[0]
-            file_ext = file_name.rsplit(".", 1)[-1]
+            file_name = url.split('?')[0]
+            file_ext = file_name.rsplit('.', 1)[-1]
             if file_ext == 'js':
-                static = '<script type="text/javascript" src="' + url + \
-                    '"></script>'
+                el = (
+                    '<script type="text/javascript" src="' + url +
+                    '"></script>')
             elif file_ext == "css":
-                static = '<link rel="stylesheet" href="' + url + \
-                    '" type="text/css">'
+                el = (
+                    '<link rel="stylesheet" href="' + url +
+                    '" type="text/css">')
             else:
                 continue
-            rv += static
+            rv.append(el)
         return rv
 
     def inject(self, context):
-        context['_weppy_assets_gen_'] = self._gen_url_str
+        context['_weppy_assets_gen_'] = self._get_static
