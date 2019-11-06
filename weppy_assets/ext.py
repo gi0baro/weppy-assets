@@ -10,9 +10,10 @@
 """
 
 import os
-from .webassets import Environment, Bundle
-from weppy._compat import basestring
+
 from weppy.extensions import Extension, TemplateExtension, TemplateLexer
+
+from .webassets import Environment, Bundle
 
 
 class Assets(Extension):
@@ -60,7 +61,7 @@ class Asset(Bundle):
         if fname not in options['filters']:
             counts = 0
             for el in contents:
-                if isinstance(el, basestring):
+                if isinstance(el, str):
                     if el.split(".")[-1] in exts:
                         counts += 1
             if counts:
@@ -69,7 +70,7 @@ class Asset(Bundle):
                     need_filter = []
                     grouped_contents = []
                     for c in contents:
-                        if isinstance(c, basestring):
+                        if isinstance(c, str):
                             c_ext = c.split(".")[-1]
                         else:
                             c_ext = None
@@ -84,7 +85,7 @@ class Asset(Bundle):
                     copt = {'filters': [fname]}
                     new_contents = []
                     for i in range(0, len(grouped_contents)):
-                        if not isinstance(grouped_contents[i][0], basestring):
+                        if not isinstance(grouped_contents[i][0], str):
                             for el in grouped_contents[i]:
                                 new_contents.append(el)
                         else:
